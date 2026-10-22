@@ -1,0 +1,40 @@
+{
+    "id": "letter_gift",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "has_letter"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Take it to the woman who sells the red draught, and show it her. She will not sell to a stranger without it.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Take the letter.",
+                    "next_node": "done",
+                    "effects": {
+                        "give_item": "item_letter",
+                        "set_flag": "has_letter",
+                        "message": "The old man folds the letter and gives it to you."
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "Go carefully. She lives behind a wall that is not as thick as it looks.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "I have nothing more. Go and find her.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

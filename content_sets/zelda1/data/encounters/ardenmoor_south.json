@@ -154,5 +154,30 @@
         ],
         "message": "A {name} rises out of the ground in front of you!",
         "note": "The graves: revenants, and the odd centaur."
+    },
+    "ashgrave_slope": {
+        "region": "ashgrave",
+        "rooms": [
+            "ma_0",
+            "ma_1"
+        ],
+        "chance": 0.5,
+        "cooldown": 6,
+        "monsters": [
+            {
+                "npc": "whirlbloom",
+                "weight": 3
+            },
+            {
+                "npc": "horned_centaur",
+                "weight": 2
+            },
+            {
+                "npc": "blue_spitter",
+                "weight": 1
+            }
+        ],
+        "message": "A {name} comes down the slope at you!",
+        "note": "The mountain: whirlblooms and centaurs."
     }
 }

@@ -1,0 +1,109 @@
+{
+    "region_id": "ashgrave",
+    "name": "Mount Ashgrave",
+    "description": "A dead mountain over a dead graveyard, with a black door in its side that will open for the eight pieces of the Starcrown and for nothing else.",
+    "rooms": {
+        "gy_stones": {
+            "name": "The Old Stones",
+            "description": "A hillside of crooked grave-stones standing as thick as teeth. One of them, near the top, is bigger than the rest and sits in its own bed of bare earth, as though it had been moved there once, and could be again.",
+            "exits": {
+                "south": "ardenmoor_north:an_0_1",
+                "north": "ma_0",
+                "east": "gy_guardians"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "sword_grave"
+                }
+            }
+        },
+        "gy_guardians": {
+            "name": "The Stone Guardians",
+            "description": "A ring of statues of soldiers, each with a stone sword, each facing out. The nearest has been standing so long that the grass has grown over its feet.",
+            "exits": {
+                "west": "gy_stones"
+            }
+        },
+        "sword_grave": {
+            "name": "The Moved Grave",
+            "description": "A dark vault under the big stone, where the air has not been breathed in a thousand years.",
+            "exits": {
+                "out": "gy_stones"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_dawn",
+                    "instance_id": "old_man_dawn"
+                }
+            ]
+        },
+        "ma_0": {
+            "name": "The Foot of Mount Ashgrave",
+            "description": "The ground stops being hill and starts being mountain. The grass gives out, and a thin cold wind comes down off the grey.",
+            "exits": {
+                "south": "gy_stones",
+                "north": "ma_1"
+            }
+        },
+        "ma_1": {
+            "name": "The Ash Slope",
+            "description": "A long slope of dark grey scree, with a path zigzagging up it. Ash blows across the path.",
+            "exits": {
+                "south": "ma_0",
+                "north": "ma_2"
+            }
+        },
+        "ma_2": {
+            "name": "The Hollow Peak",
+            "description": "The path ends at a cliff of black rock. Nobody lives up here, and yet a tall door stands in the cliff, shut, with a ring of eight small hollows cut round it.",
+            "exits": {
+                "south": "ma_1",
+                "in": "ashgrave_citadel:a_entrance"
+            },
+            "properties": {
+                "exit_requirements": {
+                    "in": {
+                        "type": "condition",
+                        "condition": {
+                            "all": [
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_1"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_2"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_3"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_4"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_5"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_6"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_7"
+                                },
+                                {
+                                    "kind": "has_item",
+                                    "item_id": "item_shard_8"
+                                }
+                            ]
+                        },
+                        "failure_message": "The door does not move. The eight hollows round it are empty, and it will not open until the eight shards of the Starcrown are in your hands."
+                    }
+                }
+            }
+        }
+    }
+}

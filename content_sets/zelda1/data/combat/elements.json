@@ -16,7 +16,8 @@
         "disease",
         "barrier",
         "explosive",
-        "missile"
+        "missile",
+        "silver"
     ],
     "default_damage_type": "magical",
     "flavor_text": {
@@ -64,6 +65,11 @@
             "weakness": "The shot finds the gap in {target_name}'s guard!",
             "resistance": "{target_name} turns the shot on a shield.",
             "strong_resistance": "The shot rattles off {target_name}'s shield and falls."
+        },
+        "silver": {
+            "weakness": "The silver bites deep into {target_name}, and it screams!",
+            "resistance": "The silver glances off {target_name}.",
+            "strong_resistance": "The silver means nothing to {target_name}."
         }
     },
     "_hazards_comment": "One record per hazard: what channel it damages through, what a player reads when it does, and the base damage and tick interval a room inherits by naming it. A room may override `hazard_damage`/`hazard_tick_interval` when its instance of the same hazard is worse -- `extreme_heat` runs hotter in the trial's inner sanctum than on the salt flat -- and may scale it with `weather_hazard_multipliers`. The prose used to be keyed by damage channel, which meant two hazards sharing a channel shared a sentence and a hazard's own name never reached a player.",

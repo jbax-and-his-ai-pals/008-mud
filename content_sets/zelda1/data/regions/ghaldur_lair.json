@@ -1,0 +1,53 @@
+{
+    "region_id": "ghaldur_lair",
+    "name": "Ghaldur's Lair",
+    "description": "Three round galleries at the top of the citadel, and a throne. Ghaldur is not in any of them that you can see.",
+    "properties": {
+        "entrance": "g_a"
+    },
+    "rooms": {
+        "g_a": {
+            "name": "The Ashen Gallery",
+            "description": "A round gallery of white stone, bare except for a ring of cold braziers. The stair you came up is behind you. Nothing is in the room that you can see, and yet the air has weight.",
+            "exits": {
+                "down": "ashgrave_citadel:a_ante",
+                "east": "g_b",
+                "south": "g_c"
+            }
+        },
+        "g_b": {
+            "name": "The Hollow Gallery",
+            "description": "A second gallery as round and bare as the first, but lower. A thin cold draught runs across it and out of sight.",
+            "exits": {
+                "west": "g_a",
+                "east": "g_c"
+            }
+        },
+        "g_c": {
+            "name": "The Throne of Ash",
+            "description": "A third gallery with a throne of black iron at the far end of it. Nobody sits in the throne. The iron of the arms is warm.",
+            "exits": {
+                "west": "g_b",
+                "north": "g_a"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "up": "p_cell"
+                }
+            }
+        },
+        "p_cell": {
+            "name": "The Princess's Cell",
+            "description": "A narrow room at the top of the throne's stair, with one barred window and one unbarred door. A young woman stands in the middle of it.",
+            "exits": {
+                "down": "g_c"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "princess_ismera",
+                    "instance_id": "princess_ismera"
+                }
+            ]
+        }
+    }
+}

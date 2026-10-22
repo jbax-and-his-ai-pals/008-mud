@@ -10,6 +10,18 @@
                 "east": "as_0_1",
                 "south": "as_1_0",
                 "north": "ardenmoor_north:an_2_0"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "ring_shop"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The bank bursts in a hail of earth, and where it stood is a low doorway with a lamp lit inside."
+                    }
+                }
             }
         },
         "as_0_1": {
@@ -102,6 +114,18 @@
                 "north": "meadow_start",
                 "west": "as_2_0",
                 "east": "as_2_2"
+            },
+            "properties": {
+                "hidden_exits": {
+                    "in": "medicine_cave"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "in",
+                        "message": "The bank blows in with a roar of dust. Behind it a shop is lit, as snug as a kitchen."
+                    }
+                }
             }
         },
         "as_2_2": {
@@ -110,7 +134,8 @@
             "exits": {
                 "north": "as_1_2",
                 "west": "as_2_1",
-                "east": "ardenmoor_east:ae_2_0"
+                "east": "ardenmoor_east:ae_2_0",
+                "in": "letter_cave"
             }
         },
         "sword_cave": {
@@ -148,6 +173,45 @@
                 {
                     "template_id": "old_man_repair",
                     "instance_id": "old_man_repair"
+                }
+            ]
+        },
+        "ring_shop": {
+            "name": "A Velvet-Hung Hollow",
+            "description": "A hollow whose walls have been hung with velvet, which is a strange thing to find in a hole.",
+            "exits": {
+                "out": "as_0_0"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_ring",
+                    "instance_id": "old_man_ring"
+                }
+            ]
+        },
+        "letter_cave": {
+            "name": "A Scribe's Cave",
+            "description": "A small cave with a lap-desk in it and a great many pens.",
+            "exits": {
+                "out": "as_2_2"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "old_man_letter",
+                    "instance_id": "old_man_letter"
+                }
+            ]
+        },
+        "medicine_cave": {
+            "name": "A Medicine Shop",
+            "description": "A snug little shop behind a wall of earth, shelves of coloured flasks from floor to ceiling.",
+            "exits": {
+                "out": "as_2_1"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "medicine_woman",
+                    "instance_id": "medicine_woman"
                 }
             ]
         }

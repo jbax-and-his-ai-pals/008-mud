@@ -1,0 +1,286 @@
+{
+    "region_id": "ashgrave_citadel",
+    "name": "The Ashgrave Citadel",
+    "description": "The tyrant's keep, cut into the black rock under the Hollow Peak. Ghaldur, and Princess Ismera, are at the top of it.",
+    "properties": {
+        "entrance": "a_entrance"
+    },
+    "rooms": {
+        "a_entrance": {
+            "name": "The Black Door",
+            "description": "A tall door opened inwards by eight small hands of light, and beyond it a corridor of black stone, humming faintly with cold.",
+            "exits": {
+                "out": "ashgrave:ma_2",
+                "north": "a_hall"
+            }
+        },
+        "a_hall": {
+            "name": "The Hall of Ash",
+            "description": "A tall hall in which ash drifts down from the roof like a slow snow, and lies in drifts against the walls.",
+            "exits": {
+                "south": "a_entrance",
+                "west": "a_west",
+                "east": "a_east",
+                "north": "a_upper"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_a1"
+                },
+                {
+                    "template_id": "horned_centaur",
+                    "instance_id": "centaur_a2"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_a1"
+                }
+            ]
+        },
+        "a_west": {
+            "name": "The Iron Colonnade",
+            "description": "A colonnade of iron pillars, between which blue-black soldiers walk their rounds.",
+            "exits": {
+                "east": "a_hall",
+                "north": "a_ring"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_aw1"
+                },
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_aw2"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "a_ring": {
+            "name": "The Ruby Niche",
+            "description": "A niche in the wall with a bed of red velvet in it, and on the velvet a heavy ring set with a ruby. Two shield-eaters hang from the roof above it.",
+            "exits": {
+                "south": "a_west"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_ar1"
+                },
+                {
+                    "template_id": "shield_eater",
+                    "instance_id": "shield_eater_ar2"
+                },
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_ar1"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_red_ring"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "ashgrave_citadel",
+                            "room_id": "a_ring"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the guards stand."
+                    }
+                }
+            }
+        },
+        "a_east": {
+            "name": "The Sand Gallery",
+            "description": "A gallery whose floor has been replaced by a trough of pale sand. Something big moves under it.",
+            "exits": {
+                "west": "a_hall",
+                "north": "a_arrows"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "sand_worm",
+                    "instance_id": "sand_worm_ae1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ae1"
+                },
+                {
+                    "template_id": "cave_bat",
+                    "instance_id": "bat_ae2"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_small_key"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "a_arrows": {
+            "name": "The Silver Hall",
+            "description": "A round hall hung with silver chains, and in the middle of it, on a block of ice, a sheaf of silver arrows. A great eye wheels above them with a ring of eyes.",
+            "exits": {
+                "south": "a_east"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "patra",
+                    "instance_id": "patra_core"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_1"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_2"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_3"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_4"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_5"
+                },
+                {
+                    "template_id": "patra_eye",
+                    "instance_id": "patra_eye_6"
+                }
+            ],
+            "items": [
+                {
+                    "item_id": "item_silver_arrows"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "exit_requirements": {
+                    "south": {
+                        "type": "condition",
+                        "condition": {
+                            "kind": "room_clear",
+                            "region_id": "ashgrave_citadel",
+                            "room_id": "a_arrows"
+                        },
+                        "failure_message": "The door has dropped shut behind you. It will not lift while the eyes wheel."
+                    }
+                }
+            }
+        },
+        "a_upper": {
+            "name": "The Upper Colonnade",
+            "description": "The inner gallery. A door of black stone stands to the north, and the west wall is cracked from floor to roof.",
+            "exits": {
+                "south": "a_hall",
+                "north": "a_ante"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_au1"
+                },
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_au1"
+                },
+                {
+                    "template_id": "grasping_hand",
+                    "instance_id": "hand_au1"
+                }
+            ],
+            "properties": {
+                "dark": true,
+                "hidden_exits": {
+                    "west": "a_cache"
+                },
+                "env_interactions": {
+                    "explosive": {
+                        "type": "reveal_exit",
+                        "direction": "west",
+                        "message": "The wall bursts, and a dark gap stands where it was."
+                    }
+                },
+                "exit_requirements": {
+                    "north": {
+                        "type": "locked",
+                        "key_id": "item_small_key",
+                        "consume": true,
+                        "pick_difficulty": 999,
+                        "failure_message": "A door of black stone, shut tight. It will want a key."
+                    }
+                }
+            }
+        },
+        "a_cache": {
+            "name": "The Treasurer's Closet",
+            "description": "A closet where the tyrant's treasurer kept the things that were not worth the vault.",
+            "exits": {
+                "east": "a_upper"
+            },
+            "items": [
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_purse_30"
+                },
+                {
+                    "item_id": "item_bomb"
+                },
+                {
+                    "item_id": "item_bomb"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        },
+        "a_ante": {
+            "name": "The Hall of Last Steps",
+            "description": "A wide, bare hall with a stair at the north end of it, going up into a cold that comes down like water.",
+            "exits": {
+                "south": "a_upper",
+                "up": "ghaldur_lair:g_a"
+            },
+            "initial_npcs": [
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_aa1"
+                },
+                {
+                    "template_id": "blue_ironclad",
+                    "instance_id": "blue_ironclad_aa2"
+                },
+                {
+                    "template_id": "strong_hexer",
+                    "instance_id": "hexer_aa1"
+                },
+                {
+                    "template_id": "sand_worm",
+                    "instance_id": "sand_worm_aa1"
+                }
+            ],
+            "properties": {
+                "dark": true
+            }
+        }
+    }
+}

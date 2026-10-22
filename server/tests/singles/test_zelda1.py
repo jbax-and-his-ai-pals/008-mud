@@ -550,5 +550,140 @@ class TestTheFiendsHoldAndTheMane(Base):
         self.assertEqual(5 * HEART, self.player.max_health)
 
 
+class TestTheGraveyardAndTheMountain(Base):
+    def test_the_dawn_blade_wants_twelve_hearts(self):
+        self.at("ashgrave", "sword_grave")
+        self.player.max_health = 11 * HEART
+        self.say("talk old man")
+        self.assertEqual(0, self.player.inventory.count_item("item_dawn_blade"))
+        self.player.max_health = 12 * HEART
+        self.say("talk old man")
+        self.say("reply 1")
+        self.assertEqual("item_dawn_blade", self.player.equipment["main_hand"].obj_id)
+
+    def test_the_big_stone_moves_for_the_bracer_alone(self):
+        self.at("ashgrave", "gy_stones")
+        self.say("go in")
+        self.assertEqual("ashgrave:gy_stones", self.where())
+        self.give("item_bracer")
+        self.assertIn("grinds across", self.say("use strongarm bracer"))
+        self.say("go in")
+        self.assertEqual("ashgrave:sword_grave", self.where())
+
+    def test_searching_under_a_guardian_wakes_it_and_its_fall_leaves_the_bracer(self):
+        self.at("ashgrave", "gy_guardians")
+        self.assertIn("steps down", self.say("search"))
+        guardian = self.foes("stone_guardian")[0]
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": guardian})
+        self.assertEqual(1, self.player.inventory.count_item("item_bracer"))
+
+    def test_the_peak_opens_for_eight_shards_and_for_seven_not(self):
+        self.at("ashgrave", "ma_2")
+        for n in range(1, 8):
+            self.give("item_shard_%d" % n)
+        self.assertIn("eight", self.say("go in").lower())
+        self.assertEqual("ashgrave:ma_2", self.where())
+        self.give("item_shard_8")
+        self.say("go in")
+        self.assertEqual("ashgrave_citadel:a_entrance", self.where())
+
+    def test_the_rings_are_worn_on_the_hand_and_the_better_replaces_the_worse(self):
+        self.give("item_blue_ring")
+        self.give("item_red_ring")
+        self.say("equip sapphire band")
+        self.assertEqual("item_blue_ring", self.player.equipment["hands"].obj_id)
+        self.say("equip ruby band")
+        self.assertEqual("item_red_ring", self.player.equipment["hands"].obj_id)
+        self.assertIn("physical", str(self.player.equipment["hands"].properties["resistances"]))
+
+    def test_the_medicine_woman_sells_only_to_one_who_shows_the_letter(self):
+        self.player.runtime_state.gold = 100
+        self.at("ardenmoor_south", "medicine_cave")
+        self.say("talk medicine woman")
+        self.assertEqual(0, self.player.inventory.count_item("item_red_draught"))
+        self.give("item_letter")
+        self.say("talk medicine woman")
+        self.say("reply 1")
+        self.say("reply 1")
+        self.assertEqual(1, self.player.inventory.count_item("item_red_draught"))
+        self.assertEqual(60, self.player.runtime_state.gold)
+
+    def test_the_eye_swarm_waits_on_its_ring(self):
+        from engine.core.combat_system import CombatSystem
+
+        self.at("ashgrave_citadel", "a_arrows")
+        core = self.foes("patra")[0]
+        self.assertEqual(6, len([n for n in self.foes("patra_eye")]))
+        self.assertIn("ring of eyes", CombatSystem.execute_attack(self.player, core, 50, always_hit=True)["message"].lower())
+
+
+class TestGhaldur(Base):
+    def _enter(self):
+        self.at("ashgrave_citadel", "a_ante")
+        self.say("go up")
+        self.assertEqual("ghaldur_lair:g_a", self.where())
+
+    def test_he_is_in_none_of_the_rooms_until_the_right_one_is_searched(self):
+        self._enter()
+        self.assertEqual([], [n for n in self.world.npcs.values() if n.is_alive and n.template_id.startswith("ghaldur_s")])
+        self.say("go east")
+        self.say("search")
+        self.assertEqual([], self.foes("ghaldur_s1"), "the wrong room finds nothing")
+        self.say("go west")
+        self.assertIn("pleased", self.say("search"))
+        self.assertEqual(1, len(self.foes("ghaldur_s1")))
+
+    def test_struck_past_the_line_he_vanishes_and_hides_in_the_next_room(self):
+        self._enter()
+        self.say("search")
+        first = self.foes("ghaldur_s1")[0]
+        first.take_damage(int(first.max_health * 0.45), "physical")
+        self.assertEqual([], self.foes("ghaldur_s1"), "gone")
+        self.assertTrue(self.player.flags.get("gh_in_b"))
+        self.assertFalse(self.player.flags.get("gh_in_a"))
+        self.say("search")
+        self.assertEqual([], self.foes("ghaldur_s2"), "not in the room he left")
+        self.say("go east")
+        self.say("search")
+        self.assertEqual(1, len(self.foes("ghaldur_s2")))
+
+    def test_the_last_stage_takes_only_silver(self):
+        self._enter()
+        for flag in ("gh_stage_4", "gh_in_a"):
+            self.player.flags[flag] = True
+        self.say("search")
+        last = self.foes("ghaldur_s4")[0]
+        for kind in ("physical", "missile", "fire", "magical", "explosive"):
+            self.assertEqual(0, last.take_damage(100, kind), kind)
+        self.assertGreater(last.take_damage(16, "silver"), 0)
+
+    def test_the_silver_arrow_costs_a_rupee_and_needs_the_bow_and_the_arrows(self):
+        self.at("ashgrave_citadel", "a_arrows")
+        for npc in list(self.world.npcs.values()):
+            if npc.template_id in ("patra", "patra_eye"):
+                self.world.remove_npcs(npc.obj_id)
+        self.say("take silver arrows")
+        self.assertIn("fire_silver_arrow", self.player.runtime_state.magic.known_spells)
+        from engine.magic.spell_registry import get_spell
+        self.assertEqual(1, get_spell("fire_silver_arrow").gold_cost)
+
+    def test_his_fall_opens_the_stair_to_the_princess_and_she_ends_it(self):
+        self._enter()
+        self.player.flags.update({"gh_stage_4": True, "gh_in_a": True})
+        self.say("search")
+        last = self.foes("ghaldur_s4")[0]
+        self.world.dispatch_event("npc_killed", {"player": self.player, "npc": last})
+        self.assertTrue(self.player.flags.get("ghaldur_down"))
+        self.at("ghaldur_lair", "g_c")
+        self.say("go up")
+        self.assertEqual("ghaldur_lair:p_cell", self.where())
+        for n in range(1, 9):
+            self.give("item_shard_%d" % n)
+        self.say("talk princess")
+        self.say("reply 1")
+        self.assertTrue(self.player.flags.get("the_end"))
+        self.assertEqual(0, self.player.inventory.count_item("item_shard_1"))
+
+
 if __name__ == "__main__":
     unittest.main()

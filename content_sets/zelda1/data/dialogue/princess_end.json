@@ -1,0 +1,97 @@
+{
+    "id": "princess_end",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "the_end"
+            }
+        },
+        {
+            "node": "free",
+            "condition": {
+                "kind": "flag",
+                "flag": "ghaldur_down"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "I heard the doors. I heard him go quiet. I did not dare hope.",
+            "pace": "slow",
+            "end": true
+        },
+        "free": {
+            "text": "He is gone, then. All of it. And you have the pieces. Give them to me, and let me do the one thing that was always mine to do.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Give her the eight shards.",
+                    "next_node": "the_end",
+                    "condition": {
+                        "all": [
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_1"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_2"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_3"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_4"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_5"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_6"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_7"
+                            },
+                            {
+                                "kind": "has_item",
+                                "item_id": "item_shard_8"
+                            }
+                        ]
+                    },
+                    "effects": {
+                        "take_item": [
+                            "item_shard_1",
+                            "item_shard_2",
+                            "item_shard_3",
+                            "item_shard_4",
+                            "item_shard_5",
+                            "item_shard_6",
+                            "item_shard_7",
+                            "item_shard_8"
+                        ],
+                        "set_flag": "the_end",
+                        "message": "The princess takes the shards one by one, and they rise from her hands and turn, and fit. The Starcrown is whole again, and for a moment all of Ardenmoor is lit from within."
+                    }
+                }
+            ]
+        },
+        "the_end": {
+            "text": "It is done. Thank you, whoever you are. Now, let us go home.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "It is done. Let us go home.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

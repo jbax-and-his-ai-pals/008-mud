@@ -954,6 +954,179 @@ check("all eight shards of the Starcrown", all("item_shard_%d" % n in g.items() 
 out = say("status")
 check("the hero stands at fifteen hearts", "%d/%d hearts" % (g.player.max_health // HEART, g.player.max_health // HEART) in out, out[:200])
 
+
+# ============================================================ slice 5: the ring, the letter, the graveyard, the mountain, the citadel, Ghaldur
+g.player.runtime_state.gold = 700
+give("item_recovery_heart", 10)
+
+# ---- the blue ring
+goto("ardenmoor_south:as_0_0")
+give("item_bomb", 2 - g.player.inventory.count_item("item_bomb")) if g.player.inventory.count_item("item_bomb") < 2 else None
+out = say("go in")
+check("a bank at the corner of the map", g.where() == "ardenmoor_south:as_0_0", out[:80])
+say("use bomb")
+walk("in")
+say("trade old man")
+gold = rupees()
+say("buy sapphire band")
+say("stoptrade")
+check("a sapphire band for two hundred and fifty rupees", "item_blue_ring" in g.items() and gold - rupees() == 250, gold - rupees())
+say("equip sapphire band")
+check("worn on the finger, it halves a blow", g.player.equipment.get("hands") is not None and g.player.equipment["hands"].obj_id == "item_blue_ring", g.player.equipment.get("hands"))
+walk("out")
+
+# ---- the letter and the red draught
+goto("ardenmoor_south:as_2_2")
+walk("in")
+say("talk old man")
+say("reply 1")
+check("a letter from the scribe", "item_letter" in g.items(), g.items())
+walk("out")
+goto("ardenmoor_south:as_2_1")
+say("use bomb")
+walk("in")
+check("a medicine shop behind the bank", g.where() == "ardenmoor_south:medicine_cave", g.where())
+say("talk medicine woman")
+say("reply 1")
+gold = rupees()
+say("reply 1")
+check("with the letter shown she sells a red draught for forty rupees", "item_red_draught" in g.items() and gold - rupees() == 40, "%s %s" % (gold - rupees(), g.items()))
+g.player.health = 5
+say("use red draught")
+check("and it closes every wound", g.player.health == g.player.max_health, g.player.health)
+walk("out")
+
+# ---- the graveyard: a guardian, the bracer, the moved stone, the dawn blade
+goto("ashgrave:gy_guardians")
+check("a ring of stone soldiers", g.where() == "ashgrave:gy_guardians", g.where())
+out = say("search")
+check("searching under one wakes it", "steps down" in out and len(hostile_here("stone_guardian")) == 1, out[:160])
+heal()
+g.fight("guardian", potion="recovery heart")
+wait(3)
+check("it falls, and under it is a bracer", "item_bracer" in g.items(), g.items())
+goto("ashgrave:gy_stones")
+out = say("go in")
+check("the big stone does not move for bare hands", g.where() == "ashgrave:gy_stones", out[:80])
+out = say("use strongarm bracer")
+check("with the bracer on, it does", "grinds across" in out, out[:160])
+walk("in")
+check("the moved grave", g.where() == "ashgrave:sword_grave", g.where())
+say("talk old man")
+say("reply 1")
+check("fifteen hearts earn the dawn blade", g.player.equipment["main_hand"].obj_id == "item_dawn_blade", g.player.equipment["main_hand"].obj_id)
+check("which cuts four times as deep as the wooden sword", g.player.get_attack_power() >= 4 * 8 - 3, g.player.get_attack_power())
+walk("out")
+
+# ---- the door on the Hollow Peak
+goto("ashgrave:ma_2")
+check("the Hollow Peak", g.where() == "ashgrave:ma_2", g.where())
+g.player.inventory.remove_item("item_shard_8", 1)
+out = say("go in")
+check("seven shards do not open the door", g.where() == "ashgrave:ma_2" and "eight" in out.lower(), out[:140])
+give("item_shard_8")
+walk("in")
+check("eight do", g.where() == "ashgrave_citadel:a_entrance", g.where())
+
+# ---- the Ashgrave Citadel
+walk("north")
+check("the hall of ash falls", clear_room_through(("centaur", "horned_centaur"), ("hexer", "strong_hexer"), region_room="ashgrave_citadel:a_hall"), "")
+goto("ashgrave_citadel:a_west")
+say("use red candle")
+check("the iron colonnade falls", clear_room_through(("blue", "blue_ironclad"), region_room="ashgrave_citadel:a_west", candle="red candle"), "")
+walk("north")
+say("use red candle")
+check("the ruby niche: two shield-eaters and a guard", len(hostile_here("shield_eater")) == 2 and g.where() == "ashgrave_citadel:a_ring", g.where())
+check("they fall", clear_room_through(("eater", "shield_eater"), ("blue", "blue_ironclad"), region_room="ashgrave_citadel:a_ring", candle="red candle"), "")
+say("take ruby band")
+say("equip ruby band")
+check("the ruby band, worn in place of the sapphire", g.player.equipment["hands"].obj_id == "item_red_ring", g.player.equipment.get("hands"))
+goto("ashgrave_citadel:a_east")
+say("use red candle")
+check("the sand gallery falls", clear_room_through(("worm", "sand_worm"), ("bat", "cave_bat"), region_room="ashgrave_citadel:a_east", candle="red candle"), "")
+say("take small key")
+walk("north")
+say("use red candle")
+check("the silver hall: the great eye and six smaller", len(hostile_here("patra")) == 1 and len(hostile_here("patra_eye")) == 6, [n.template_id for n in hostile_here()])
+core = hostile_here("patra")[0]
+out = say("attack the eye-swarm")
+check("the great eye is guarded by its ring", core.health == core.max_health and "ring of eyes" in out.lower(), out[:140])
+guard = 0
+while hostile_here("patra_eye") and guard < 40 and g.player.is_alive:
+    guard += 1
+    heal()
+    g.fight("swarm eye", max_rounds=3, potion="recovery heart")
+check("the six eyes fall", not hostile_here("patra_eye") and g.player.is_alive, len(hostile_here("patra_eye")))
+heal()
+g.fight("the eye-swarm", potion="recovery heart")
+wait(3)
+check("and the great eye", not core.is_alive, core.health)
+say("take silver arrows")
+check("the silver arrows", "item_silver_arrows" in g.items() and "fire_silver_arrow" in g.player.runtime_state.magic.known_spells, g.items())
+goto("ashgrave_citadel:a_upper")
+say("use red candle")
+check("the upper colonnade falls", clear_room_through(("hexer", "strong_hexer"), ("blue", "blue_ironclad"), ("hand", "grasping_hand"), region_room="ashgrave_citadel:a_upper", candle="red candle"), "")
+say("use bomb")
+walk("west")
+check("a closet behind the west wall", g.where() == "ashgrave_citadel:a_cache", g.where())
+walk("east")
+out = say("go north")
+check("the black door yields", g.where() == "ashgrave_citadel:a_ante", g.where() + out[:60])
+say("use red candle")
+check("the hall of last steps falls", clear_room_through(("blue", "blue_ironclad"), ("hexer", "strong_hexer"), ("worm", "sand_worm"), region_room="ashgrave_citadel:a_ante", candle="red candle"), "")
+heal()
+walk("up")
+check("Ghaldur's lair", g.where() == "ghaldur_lair:g_a", g.where())
+
+# ---- Ghaldur: search, strike, he vanishes, search again
+check("nobody is in the room that you can see", not hostile_here(), [n.template_id for n in hostile_here()])
+out = say("go east")
+out = say("search")
+check("a search in the wrong room finds nothing", not hostile_here("ghaldur_s1", "ghaldur_s2") and g.where() == "ghaldur_lair:g_b", out[:100])
+goto("ghaldur_lair:g_a")
+out = say("search")
+check("a search in the right room folds the air back: Ghaldur", len(hostile_here("ghaldur_s1")) == 1 and "pleased" in out, out[:160])
+STAGES = [("ghaldur_s1", "g_b"), ("ghaldur_s2", "g_c"), ("ghaldur_s3", "g_a")]
+for stage, where_next in STAGES:
+    foe = hostile_here(stage)[0]
+    guard = 0
+    while foe.is_alive and g.where().endswith(foe.current_room_id) and guard < 30 and g.player.is_alive:
+        guard += 1
+        heal()
+        g.fight("Ghaldur", max_rounds=2, potion="recovery heart")
+        if not any(n.template_id == stage and n.is_alive for n in g.world.npcs.values()):
+            break
+    check("%s is struck and vanishes" % stage, not any(n.template_id == stage and n.is_alive for n in g.world.npcs.values()) and g.player.is_alive, foe.health)
+    check("and the next place he hides in is %s" % where_next, g.player.flags.get("gh_in_%s" % where_next[-1]) is True, [k for k in g.player.flags if k.startswith("gh_")])
+    goto("ghaldur_lair:%s" % where_next)
+    out = say("search")
+    nxt = "ghaldur_s%d" % (int(stage[-1]) + 1)
+    check("searching there finds him again", len(hostile_here(nxt)) == 1, out[:120])
+last = hostile_here("ghaldur_s4")[0]
+heal()
+for _ in range(3):
+    say("attack Ghaldur")
+    wait(2)
+check("a sword does nothing to him now", last.health == last.max_health, last.health)
+g.player.runtime_state.gold = 40
+shots = 0
+for _ in range(60):
+    heal()
+    if not last.is_alive:
+        break
+    say("cast silver arrow on Ghaldur")
+    shots += 1
+    wait(2)
+wait(3)
+check("silver arrows fell him", not last.is_alive, "%s hp after %d shots" % (last.health, shots))
+check("the way up behind the throne is open", g.player.flags.get("ghaldur_down") is True, "")
+goto("ghaldur_lair:g_c")
+walk("up")
+check("the princess's cell", g.where() == "ghaldur_lair:p_cell", g.where())
+say("talk princess")
+say("reply 1")
+check("the eight shards are given and the Starcrown is whole", g.player.flags.get("the_end") is True and not any("shard" in i for i in g.items()), [i for i in g.items() if "shard" in i])
+
 print(NL + "%d/%d checks passed" % (sum(1 for r in RESULTS if r[1]), len(RESULTS)))
 print("FAILED:", [r[0] for r in RESULTS if not r[1]])
 g.close()

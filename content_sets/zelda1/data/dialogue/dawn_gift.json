@@ -1,0 +1,55 @@
+{
+    "id": "dawn_gift",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "after",
+            "condition": {
+                "kind": "flag",
+                "flag": "has_dawn_blade"
+            }
+        },
+        {
+            "node": "offer",
+            "condition": {
+                "kind": "max_health_at_least",
+                "value": 192
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "Twelve hearts for the dawn blade, and not one fewer. Come back when you have the heart to carry it.",
+            "pace": "slow",
+            "end": true
+        },
+        "offer": {
+            "text": "Twelve hearts. You are the first in a thousand years. Take it; it has waited for you.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Take the dawn blade.",
+                    "next_node": "done",
+                    "effects": {
+                        "give_item": "item_dawn_blade",
+                        "equip_item": [
+                            "item_dawn_blade"
+                        ],
+                        "set_flag": "has_dawn_blade",
+                        "message": "The old man puts a long sword of bright metal in your hands."
+                    }
+                }
+            ]
+        },
+        "done": {
+            "text": "It will cut where the pale blade would turn.",
+            "pace": "slow",
+            "end": true
+        },
+        "after": {
+            "text": "I have nothing more to give. Go and finish it.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

@@ -364,5 +364,116 @@
             "unique": true,
             "dialogue": "repair_toll"
         }
+    },
+    "old_man_dawn": {
+        "name": "an old man",
+        "description": "A very old man sitting in the dark of a grave with his back against the wall of it, who has waited a very long time.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Twelve hearts for the dawn blade, and not one fewer."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "dawn_gift"
+        }
+    },
+    "old_man_ring": {
+        "name": "an old man",
+        "description": "A very old man behind a velvet cloth with a few rings on it.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Buy something, will you!"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "is_vendor": true,
+            "sells_items": [
+                {
+                    "item_id": "item_blue_ring"
+                }
+            ],
+            "sell_rate_multiplier": 1.0
+        }
+    },
+    "old_man_letter": {
+        "name": "an old man",
+        "description": "A very old man with a quill and a lap-desk, who is just finishing a letter.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Take it to the woman who sells the red draught, and show it her."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "letter_gift"
+        }
+    },
+    "medicine_woman": {
+        "name": "the medicine woman",
+        "description": "A stout woman in a flour-white apron, with shelves of coloured flasks behind her.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "Yes? What do you want?"
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "medicine_woman"
+        }
+    },
+    "princess_ismera": {
+        "name": "Princess Ismera",
+        "description": "A young woman in a travel-stained gown, standing very straight in the middle of the cell with her chin up.",
+        "max_health": 30,
+        "level": 1,
+        "attack_power": 3,
+        "friendly": true,
+        "faction": "friendly",
+        "behavior_type": "stationary",
+        "max_mana": 0,
+        "dialog": {
+            "greeting": "You came."
+        },
+        "properties": {
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "essential": true,
+            "unique": true,
+            "dialogue": "princess_end"
+        }
     }
 }

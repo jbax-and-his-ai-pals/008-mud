@@ -361,5 +361,70 @@
                 "damage_type": "fire"
             }
         ]
+    },
+    "fire_silver_arrow": {
+        "name": "Silver Arrow",
+        "description": "Loose a silver arrow at one enemy. It costs a rupee, and the silver goes where nothing else will.",
+        "mana_cost": 0,
+        "cooldown": 2,
+        "target_type": "enemy",
+        "cast_message": "You draw the bow and loose a silver arrow.",
+        "hit_message": "The silver arrow strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "gold_cost": 1,
+        "requires": {
+            "all": [
+                {
+                    "kind": "has_item",
+                    "item_id": "item_bow"
+                },
+                {
+                    "kind": "has_item",
+                    "item_id": "item_silver_arrows"
+                }
+            ]
+        },
+        "requires_message": "You need the bow and the silver arrows.",
+        "effects": [
+            {
+                "type": "damage",
+                "value": 32,
+                "damage_type": "silver"
+            }
+        ]
+    },
+    "ghaldur_bolt": {
+        "name": "Ghaldur's Bolt",
+        "description": "A bolt of white fire.",
+        "mana_cost": 0,
+        "cooldown": 4,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} raises one hand, and a bolt of white fire comes off it.",
+        "hit_message": "The fire strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 24,
+                "damage_type": "magical"
+            }
+        ]
+    },
+    "eye_beam": {
+        "name": "Eye Beam",
+        "description": "A thin beam of cold light.",
+        "mana_cost": 0,
+        "cooldown": 5,
+        "target_type": "enemy",
+        "cast_message": "{caster_name} fixes you with a cold light.",
+        "hit_message": "The beam strikes {target_name} for {value} damage!",
+        "level_required": 1,
+        "effects": [
+            {
+                "type": "damage",
+                "value": 8,
+                "damage_type": "magical"
+            }
+        ]
     }
 }

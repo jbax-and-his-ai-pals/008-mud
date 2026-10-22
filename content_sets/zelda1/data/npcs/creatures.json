@@ -1463,5 +1463,393 @@
             ],
             "shield_text": "{attacker} swings at {defender}, but a long neck whips across the blow and a head snaps at the sword."
         }
+    },
+    "stone_guardian": {
+        "name": "stone guardian",
+        "description": "A statue of a soldier that was part of the hill until you touched it. It steps down with its stone sword raised.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        }
+    },
+    "whirlbloom": {
+        "name": "whirlbloom",
+        "description": "A great spinning flower of leaf-blades that drifts about at head height. It is only to be struck when it comes down to rest.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.6,
+                "quantity": [
+                    2,
+                    8
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.15
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "phases": [
+                {
+                    "name": "resting",
+                    "seconds": 5,
+                    "message": "[[CYAN]]The whirlbloom sinks to the ground and its blades fold.[[/]]"
+                },
+                {
+                    "name": "spinning",
+                    "seconds": 6,
+                    "untouchable": true,
+                    "message": "[[CYAN]]The whirlbloom lifts and spins, a blur of leaf-edges.[[/]]",
+                    "miss_text": "{attacker} swings at a blur of leaf-blades, and the sword is turned."
+                }
+            ]
+        }
+    },
+    "sand_worm": {
+        "name": "sand worm",
+        "description": "A pale worm as thick as a barrel that bursts from the floor, bites, and goes back under.",
+        "max_health": 28,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 14,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "loot_table": {
+            "gold_value": {
+                "chance": 0.8,
+                "quantity": [
+                    4,
+                    12
+                ]
+            },
+            "item_recovery_heart": {
+                "chance": 0.2
+            }
+        },
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": 240,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.6
+        }
+    },
+    "patra_eye": {
+        "name": "swarm eye",
+        "description": "A fist-sized floating eye with a thin red ring about the iris, one of a swarm.",
+        "max_health": 13,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.4,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3
+        },
+        "usable_spells": [
+            "eye_beam"
+        ],
+        "max_mana": 100
+    },
+    "patra": {
+        "name": "the eye-swarm",
+        "description": "A great eye ringed with smaller eyes, wheeling around it in a slow, sick circle. The great eye cannot be struck while its ring wheels.",
+        "max_health": 21,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 10,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 2.4,
+            "unique": true,
+            "status_immune": true,
+            "shielded_by": [
+                "patra_eye"
+            ],
+            "shield_text": "{attacker} swings at {defender}, but the ring of eyes wheels across the blow and closes the gap."
+        }
+    },
+    "ghaldur_s1": {
+        "name": "Ghaldur, the Pale Tyrant",
+        "description": "A tall, pale man in a robe the colour of ash, with eyes like cut glass and a crown of black iron that does not belong to him. Wherever he stands, the air is cold.",
+        "max_health": 64,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3,
+            "unique": true,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "ghaldur_bolt"
+        ],
+        "max_mana": 100
+    },
+    "ghaldur_s2": {
+        "name": "Ghaldur, the Pale Tyrant",
+        "description": "A tall, pale man in a robe the colour of ash, with eyes like cut glass and a crown of black iron that does not belong to him. Wherever he stands, the air is cold.",
+        "max_health": 64,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3,
+            "unique": true,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "ghaldur_bolt"
+        ],
+        "max_mana": 100
+    },
+    "ghaldur_s3": {
+        "name": "Ghaldur, the Pale Tyrant",
+        "description": "A tall, pale man in a robe the colour of ash, with eyes like cut glass and a crown of black iron that does not belong to him. Wherever he stands, the air is cold.",
+        "max_health": 64,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3,
+            "unique": true,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "ghaldur_bolt"
+        ],
+        "max_mana": 100
+    },
+    "ghaldur_s4": {
+        "name": "Ghaldur, the Pale Tyrant, laid bare",
+        "description": "Ghaldur with the last of his hiding gone: a tall pale shape ringed in white fire, taking every blow into itself as if the blows were air. Only silver reaches him.",
+        "max_health": 40,
+        "level": 1,
+        "friendly": false,
+        "faction": "hostile",
+        "behavior_type": "aggressive",
+        "stats": {
+            "strength": 3,
+            "dexterity": 8,
+            "constitution": 1,
+            "agility": 8,
+            "intelligence": 4,
+            "wisdom": 4,
+            "spell_power": 1,
+            "magic_resist": 1,
+            "resistances": {
+                "physical": 100,
+                "missile": 100,
+                "fire": 100,
+                "magical": 100,
+                "explosive": 100,
+                "holy": 100,
+                "ice": 100,
+                "shadow": 100
+            }
+        },
+        "attack_power": 18,
+        "defense": 0,
+        "properties": {
+            "loot_tags": [
+                "living"
+            ],
+            "aggression": 1,
+            "flee_threshold": 0,
+            "respawn_cooldown": -1,
+            "spell_cast_chance": 0.6,
+            "wander_chance": 0,
+            "move_cooldown": 9999,
+            "weapon_damage_type": "slashing",
+            "attack_cooldown": 3,
+            "unique": true,
+            "status_immune": true
+        },
+        "usable_spells": [
+            "ghaldur_bolt"
+        ],
+        "max_mana": 100
     }
 }

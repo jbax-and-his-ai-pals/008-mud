@@ -392,5 +392,288 @@
             },
             "message": "The great hydra's body falls into the pit and the necks fall after it. The eighth and last sliver of the Starcrown lies in the bones. All eight are yours, and a warmth runs through you."
         }
+    },
+    "bracer_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_bracer"
+        },
+        "once": "player",
+        "effects": {
+            "message": "You buckle the bracer on. You could move a stone with this."
+        }
+    },
+    "bracer_stone": {
+        "on": {
+            "event": "item_used",
+            "item": "item_bracer",
+            "region": "ashgrave",
+            "room": "gy_stones"
+        },
+        "once": "world",
+        "effects": {
+            "reveal_exit": {
+                "room": "ashgrave:gy_stones",
+                "direction": "in"
+            },
+            "message": "The big stone grinds across its bed, and under it is a stair going down into the earth."
+        }
+    },
+    "guardian_wakes": {
+        "on": {
+            "event": "searched",
+            "region": "ashgrave",
+            "room": "gy_guardians"
+        },
+        "once": "world",
+        "effects": {
+            "spawn_npc": {
+                "npc": "stone_guardian",
+                "region": "ashgrave",
+                "room": "gy_guardians",
+                "instance_id": "guardian_awake"
+            },
+            "message": "You kneel to look under the nearest statue, and it moves: the stone sword comes up, and the statue steps down off its plinth."
+        }
+    },
+    "guardian_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "stone_guardian"
+        },
+        "once": "world",
+        "effects": {
+            "give_item": "item_bracer",
+            "message": "The guardian breaks into a heap of stone. Under the plinth it stood on is a broad bracer of leather and iron."
+        }
+    },
+    "silver_arrows_taken": {
+        "on": {
+            "event": "item_taken",
+            "item": "item_silver_arrows"
+        },
+        "once": "player",
+        "effects": {
+            "teach_spell": "fire_silver_arrow",
+            "message": "You lay the silver heads along your quiver. Type 'cast silver arrow' (or 'cast silver arrow on <creature>') to loose one; each costs a rupee."
+        }
+    },
+    "the_lair_begins": {
+        "on": {
+            "event": "on_enter",
+            "region": "ghaldur_lair",
+            "room": "g_a"
+        },
+        "once": "world",
+        "effects": {
+            "set_flag": [
+                "gh_stage_1",
+                "gh_in_a"
+            ],
+            "message": "A voice speaks, very close and no louder than a breath: 'You came so far to find a room with no one in it.' The cold on your skin is not from the stair."
+        }
+    },
+    "find_s1": {
+        "on": {
+            "event": "searched",
+            "region": "ghaldur_lair",
+            "room": "g_a"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "gh_stage_1"
+                },
+                {
+                    "kind": "flag",
+                    "flag": "gh_in_a"
+                }
+            ]
+        },
+        "effects": {
+            "spawn_npc": {
+                "npc": "ghaldur_s1",
+                "region": "ghaldur_lair",
+                "room": "g_a",
+                "instance_id": "ghaldur_s1"
+            },
+            "message": "You search the room, and the air in it folds back like a curtain: Ghaldur is standing three paces from you, and he is not pleased to be seen."
+        }
+    },
+    "vanish_s1": {
+        "on": {
+            "event": "health_below",
+            "who": "ghaldur_s1",
+            "fraction": 0.6
+        },
+        "once": "world",
+        "effects": {
+            "remove_npc": "ghaldur_s1",
+            "set_flag": [
+                {
+                    "name": "gh_in_a",
+                    "value": false
+                },
+                {
+                    "name": "gh_stage_1",
+                    "value": false
+                },
+                "gh_in_b",
+                "gh_stage_2"
+            ],
+            "message": "Ghaldur flinches, and laughs, and is gone: the air where he stood snaps shut like a door. Somewhere else in the lair, very close, something draws a breath."
+        }
+    },
+    "find_s2": {
+        "on": {
+            "event": "searched",
+            "region": "ghaldur_lair",
+            "room": "g_b"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "gh_stage_2"
+                },
+                {
+                    "kind": "flag",
+                    "flag": "gh_in_b"
+                }
+            ]
+        },
+        "effects": {
+            "spawn_npc": {
+                "npc": "ghaldur_s2",
+                "region": "ghaldur_lair",
+                "room": "g_b",
+                "instance_id": "ghaldur_s2"
+            },
+            "message": "You search the room, and the air in it folds back like a curtain: Ghaldur is standing three paces from you, and he is not pleased to be seen."
+        }
+    },
+    "vanish_s2": {
+        "on": {
+            "event": "health_below",
+            "who": "ghaldur_s2",
+            "fraction": 0.6
+        },
+        "once": "world",
+        "effects": {
+            "remove_npc": "ghaldur_s2",
+            "set_flag": [
+                {
+                    "name": "gh_in_b",
+                    "value": false
+                },
+                {
+                    "name": "gh_stage_2",
+                    "value": false
+                },
+                "gh_in_c",
+                "gh_stage_3"
+            ],
+            "message": "Ghaldur flinches, and laughs, and is gone: the air where he stood snaps shut like a door. Somewhere else in the lair, very close, something draws a breath."
+        }
+    },
+    "find_s3": {
+        "on": {
+            "event": "searched",
+            "region": "ghaldur_lair",
+            "room": "g_c"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "gh_stage_3"
+                },
+                {
+                    "kind": "flag",
+                    "flag": "gh_in_c"
+                }
+            ]
+        },
+        "effects": {
+            "spawn_npc": {
+                "npc": "ghaldur_s3",
+                "region": "ghaldur_lair",
+                "room": "g_c",
+                "instance_id": "ghaldur_s3"
+            },
+            "message": "You search the room, and the air in it folds back like a curtain: Ghaldur is standing three paces from you, and he is not pleased to be seen."
+        }
+    },
+    "vanish_s3": {
+        "on": {
+            "event": "health_below",
+            "who": "ghaldur_s3",
+            "fraction": 0.6
+        },
+        "once": "world",
+        "effects": {
+            "remove_npc": "ghaldur_s3",
+            "set_flag": [
+                {
+                    "name": "gh_in_c",
+                    "value": false
+                },
+                {
+                    "name": "gh_stage_3",
+                    "value": false
+                },
+                "gh_in_a",
+                "gh_stage_4"
+            ],
+            "message": "Ghaldur flinches, and laughs, and is gone: the air where he stood snaps shut like a door. Somewhere else in the lair, very close, something draws a breath."
+        }
+    },
+    "find_s4": {
+        "on": {
+            "event": "searched",
+            "region": "ghaldur_lair",
+            "room": "g_a"
+        },
+        "once": false,
+        "when": {
+            "all": [
+                {
+                    "kind": "flag",
+                    "flag": "gh_stage_4"
+                },
+                {
+                    "kind": "flag",
+                    "flag": "gh_in_a"
+                }
+            ]
+        },
+        "effects": {
+            "spawn_npc": {
+                "npc": "ghaldur_s4",
+                "region": "ghaldur_lair",
+                "room": "g_a",
+                "instance_id": "ghaldur_s4"
+            },
+            "message": "You search the room, and the air in it folds back like a curtain: Ghaldur is standing three paces from you, and he is not pleased to be seen."
+        }
+    },
+    "ghaldur_falls": {
+        "on": {
+            "event": "npc_killed",
+            "npc": "ghaldur_s4"
+        },
+        "once": "world",
+        "effects": {
+            "set_flag": "ghaldur_down",
+            "reveal_exit": {
+                "room": "ghaldur_lair:g_c",
+                "direction": "up"
+            },
+            "message": "The silver goes in, and Ghaldur stops being a man or a shape or a voice. A scream goes out of him, and a long way off a door unlocks. In the throne room, a stair has opened up behind the throne."
+        }
     }
 }

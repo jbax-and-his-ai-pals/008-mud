@@ -1,0 +1,97 @@
+{
+    "id": "medicine_woman",
+    "root": "greeting",
+    "entries": [
+        {
+            "node": "shop",
+            "condition": {
+                "kind": "flag",
+                "flag": "letter_shown"
+            }
+        },
+        {
+            "node": "show",
+            "condition": {
+                "kind": "has_item",
+                "item_id": "item_letter"
+            }
+        }
+    ],
+    "nodes": {
+        "greeting": {
+            "text": "I do not sell to strangers. Has someone written you a letter?",
+            "pace": "slow",
+            "end": true
+        },
+        "show": {
+            "text": "A letter. Well, why did you not say? Show it here. ... Good. Forty rupees a flask, and I will not haggle.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Show the letter.",
+                    "next_node": "shop",
+                    "condition": {
+                        "kind": "has_item",
+                        "item_id": "item_letter"
+                    },
+                    "effects": {
+                        "take_item": "item_letter",
+                        "set_flag": "letter_shown",
+                        "message": "You show the old woman the letter. She reads it twice and puts it in her apron."
+                    }
+                }
+            ]
+        },
+        "shop": {
+            "text": "Forty rupees a flask.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Buy a red draught (40 rupees).",
+                    "next_node": "bought",
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 40
+                    },
+                    "effects": {
+                        "take_gold": 40,
+                        "give_item": "item_red_draught",
+                        "message": "She puts a red flask in your hand."
+                    }
+                },
+                {
+                    "text": "Not now.",
+                    "next_node": "bye"
+                }
+            ]
+        },
+        "bought": {
+            "text": "Drink it only when you must.",
+            "pace": "slow",
+            "choices": [
+                {
+                    "text": "Buy another (40 rupees).",
+                    "next_node": "bought",
+                    "condition": {
+                        "kind": "gold_at_least",
+                        "value": 40
+                    },
+                    "effects": {
+                        "take_gold": 40,
+                        "give_item": "item_red_draught",
+                        "message": "She puts another red flask in your hand."
+                    }
+                },
+                {
+                    "text": "That will do.",
+                    "next_node": "bye"
+                }
+            ]
+        },
+        "bye": {
+            "text": "Mind yourself.",
+            "pace": "slow",
+            "end": true
+        }
+    }
+}

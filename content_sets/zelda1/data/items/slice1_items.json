@@ -447,5 +447,136 @@
                 "item_bomb": 16
             }
         }
+    },
+    "item_bracer": {
+        "type": "Consumable",
+        "name": "strongarm bracer",
+        "description": "A broad bracer of boiled leather and iron, buckled to the forearm. Pushed against something heavy, it makes you strong enough to shift it.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "reusable": true,
+            "quest_item": true,
+            "effects": {
+                "message": "You set your shoulder to it and heave with the bracer on."
+            }
+        },
+        "item_family": "consumable"
+    },
+    "item_dawn_blade": {
+        "type": "Weapon",
+        "name": "dawn blade",
+        "description": "A long sword of bright metal that has not tarnished in a thousand years under a stone. It cuts four times as deep as the wooden one.",
+        "weight": 2,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "damage": 27,
+            "weapon_damage_type": "slashing",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "main_hand"
+            ]
+        },
+        "item_family": "weapon"
+    },
+    "item_silver_arrows": {
+        "type": "Item",
+        "name": "silver arrows",
+        "description": "A sheaf of arrows with heads of true silver. Fired from the bow, one is enough for any creature a plain arrow cannot hurt.",
+        "weight": 1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_red_ring": {
+        "type": "Armor",
+        "name": "ruby band",
+        "description": "A heavy ring of red gold set with a ruby. Worn, it takes three parts in four of every blow.",
+        "weight": 0.1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "hands"
+            ],
+            "resistances": {
+                "physical": 75,
+                "missile": 75,
+                "fire": 75,
+                "magical": 75,
+                "explosive": 75,
+                "silver": 75
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_blue_ring": {
+        "type": "Armor",
+        "name": "sapphire band",
+        "description": "A ring of blue-white gold set with a sapphire. Worn, it takes half of every blow.",
+        "weight": 0.1,
+        "value": 125,
+        "stackable": false,
+        "properties": {
+            "defense": 0,
+            "armor_material": "steel",
+            "durability": 9999,
+            "max_durability": 9999,
+            "equip_slot": [
+                "hands"
+            ],
+            "resistances": {
+                "physical": 50,
+                "missile": 50,
+                "fire": 50,
+                "magical": 50,
+                "explosive": 50,
+                "silver": 50
+            }
+        },
+        "item_family": "armor"
+    },
+    "item_letter": {
+        "type": "Item",
+        "name": "the old woman's letter",
+        "description": "A folded letter in a spidery hand, to be shown to a woman who knows how to make a red draught.",
+        "weight": 0.1,
+        "value": 0,
+        "stackable": false,
+        "properties": {
+            "quest_item": true
+        }
+    },
+    "item_red_draught": {
+        "type": "Consumable",
+        "name": "red draught",
+        "description": "A flask of red liquid that tastes of cherries and iron. Drunk, it closes every wound.",
+        "weight": 0.5,
+        "value": 20,
+        "stackable": true,
+        "properties": {
+            "uses": 1,
+            "max_uses": 1,
+            "effect_type": "effects",
+            "effects": {
+                "restore": {
+                    "resource": "all"
+                },
+                "message": "You drink the red draught, and every wound closes."
+            }
+        },
+        "item_family": "consumable"
     }
 }

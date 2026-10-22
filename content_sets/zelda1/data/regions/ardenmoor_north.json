@@ -19,7 +19,8 @@
                 "west": "an_0_0",
                 "east": "an_0_2",
                 "south": "an_1_1",
-                "in": "wyvern_deep:w_entrance"
+                "in": "wyvern_deep:w_entrance",
+                "north": "ashgrave:gy_stones"
             }
         },
         "an_0_2": {
