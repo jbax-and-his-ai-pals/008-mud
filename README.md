@@ -1,145 +1,103 @@
-# Pygame Text RPG Engine
+# MUD Engine
 
-A robust, modular, and data-driven Text-Based RPG engine built with Python and Pygame. While visually presented as a classic MUD (Multi-User Dungeon), it features a modern hybrid UI with clickable text, hotbars, and mouse interaction, sitting on top of a deep simulation of world mechanics.
+[![Server tests](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/server-tests.yml/badge.svg)](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/server-tests.yml)
+[![Editor checks](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/editor-checks.yml/badge.svg)](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/editor-checks.yml)
+[![Client checks](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/client-checks.yml/badge.svg)](https://github.com/jbax-and-his-ai-pals/008-mud/actions/workflows/client-checks.yml)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
 
-## 🚀 Getting Started
+A data-driven text-RPG (MUD) engine in Python, with a Godot client and a Godot world editor.
+**All functionality lives in the engine; a game is content only**: JSON files in a *content set*
+that the engine validates, serves and the editor can author. The same engine runs a fantasy
+frontier, a sci-fi salvage yard, a modern night shift, and faithful-in-shape adaptations of three
+classic console RPGs, which exist to find and harden the engine's gaps.
 
-### Prerequisites
-*   Python **3.12**. It is pinned in `.python-version`, used by CI, and is the
-    only interpreter supported by the project bootstrap.
-*   Internet access on first setup, to install the locked Pygame, PyYAML,
-    msgpack, and coverage wheels into the project-local virtual environment.
-*   PyTorch / Transformers — **not needed.** Local-LLM ambient dialogue is
-    disabled (`_load_model` returns early); install them only if you want to
-    switch it on.
+## Games that ship in the tree
 
-### Setting up
+| Content set | What it is |
+|---|---|
+| [`dq1_slice`](content_sets/dq1_slice) | *The Dawnglass*: a complete, finishable adaptation of the original Dragon Quest. Level table, dark caves, encounter zones, a rainbow bridge, a two-form final boss. [Walkthrough](docs/reference/DQ1_SLICE_WALKTHROUGH.md) |
+| [`zelda1`](content_sets/zelda1) | *The Starcrown of Ardenmoor*: a complete adaptation of the first Legend of Zelda quest. Hearts and half-hearts, bombs that open walls, candles, eight dungeons, a boss who must be searched out. [Walkthrough](docs/reference/ZELDA1_WALKTHROUGH.md) |
+| [`ff4_slice`](content_sets/ff4_slice) | A party-based slice of Final Fantasy IV: companions, scenes, cutscenes, a Paladin conversion. [Walkthrough](docs/reference/FF4_SLICE_WALKTHROUGH.md) |
+| [`fantasy_frontier`](content_sets/fantasy_frontier) | The large, open sandbox set: crafting, procedural loot, schedules, factions, weather, dynamic quests. |
+| [`orbital_salvage`](content_sets/orbital_salvage), [`night_shift`](content_sets/night_shift), [`modern_capsule`](content_sets/modern_capsule) | Sci-fi, modern and capsule proofs that the engine carries no fantasy assumptions. |
+
+Every name in the adaptations is changed; they are engine tests, not releases.
+
+## What is in the box
+
+* **Engine** (`server/engine/`): a headless, server-authoritative simulation with TCP and WebSocket transports, persistence, real-time combat, abilities, quests, dialogue graphs, scenes, triggers, companions, dark rooms, encounter zones, hearts or numbers, crafting, economy, weather and time.
+* **Content sets** (`content_sets/`): data only. A validator (`toolkit/content_set_validator.py`) refuses bad values before a game boots.
+* **World editor** (`mud-world-editor/`): a Godot app that authors every content kind, writes the same JSON byte for byte, and is checked against the engine's own vocabulary.
+* **Godot client** (`client/`): panels, clickable text, a test mode with checkpoints.
+* **Toolkit** (`toolkit/`): launcher GUI, scripted playthroughs (`play_script.py`, `adaptation_walkthroughs/`), authoring helpers.
+
+## Quick start
+
+Needs Python **3.12**. From the repository root:
+
 ```bash
-# Windows: creates .venv with Python 3.12 and installs server/requirements.lock
+# Windows: creates .venv and installs the locked dependencies
 powershell -ExecutionPolicy Bypass -File bootstrap.ps1
-
-# Linux / macOS:
-python3.12 -m venv .venv
-.venv/bin/python -m pip install -r server/requirements.lock
+# Linux / macOS
+python3.12 -m venv .venv && .venv/bin/python -m pip install -r server/requirements.lock
 ```
 
-### Running the tests
-The runners are Python, so they behave the same on every platform; the
-`run_*.ps1` files of the same name are thin Windows launchers that pick a
-versioned interpreter and hand over to them.
+Play in a terminal (use `.venv/Scripts/python.exe` on Windows):
 
 ```bash
-python3 run_tests.py                       # all three suites, as parallel shards (about a minute)
-python3 run_tests.py --jobs 1              # one after another, as a single process
-python3 run_tests.py --suite singles       # just tests/singles
-python3 run_tests.py --target tests.singles.test_p4_progression
-python3 run_tests.py --check-dependencies  # what is missing, and for which Python
-python3 run_content_checks.py              # content gates + validators
+python server/server_main.py --content-set content_sets/zelda1
+python server/server_main.py --content-set content_sets/dq1_slice
 ```
 
-```powershell
-# Windows PowerShell (what ships with Windows):
-powershell -ExecutionPolicy Bypass -File run_tests.ps1
-powershell -ExecutionPolicy Bypass -File run_content_checks.ps1
-# PowerShell 7+, where `pwsh` exists:
-pwsh -File run_tests.ps1
-```
-`-ExecutionPolicy Bypass` is only needed while this machine's policy blocks
-local scripts.
-
-After bootstrap, the Windows launchers use `.venv\Scripts\python.exe` and
-refuse to fall back to PATH. `run_tests.py` still checks PyYAML/msgpack/pygame
-before running anything, so a damaged environment reports setup failure rather
-than misleading test failures. Logs land in `tmp/test-results/`. Pass
-`-Interpreter "py -3.14"` only when intentionally diagnosing another Python.
-
-### Running the Game
-
-There is no root `main.py`; the game is a server plus clients, and both entry
-points live in `server/`. Every command runs from the repository root.
+Or read what a scripted player reads, with no setup of your own:
 
 ```bash
-# Play in a terminal (headless server, stdin command loop) -- quickest way in:
-python server/server_main.py --content-set content_sets/fantasy_frontier
-
-# Serve a content set over TCP or WebSocket (the Godot client's start screen uses WebSocket):
-python server/launch_content_set.py --transport ws --content-set content_sets/fantasy_frontier
-
-# Same thing underneath, if you want the server's own arguments:
-python server/poc_ws_server.py --content-set content_sets/fantasy_frontier
+python toolkit/play_script.py zelda1 look "go in" "talk old man" "reply 1"
 ```
 
-`--content-set` is required by the servers and accepts a content-set directory or
-its manifest. `--presentation-mode player|test` decides whether debug and GM
-commands are visible to the session (`player` is the honest default for anyone
-playing; `test` is for authoring). The pygame client is still in the tree behind
-`server/main.py --content-set …`; the Godot client in `client/` and the world
-editor in `mud-world-editor/` are the supported front ends.
+Serve a set to the Godot client over WebSocket:
 
-**Launcher GUI:** double-click `launcher.bat` (or run `python toolkit/launcher.py`) to pick a
-content set, see whether it validates, start and stop a server, play in a terminal, and open the
-Godot client or the world editor. Standard library only. "Quick play (Test)" starts a throwaway server for the selected set and opens the client already connected and playing as a character named Test, with a row of test tools above the command line: **Skip scene** and a picker of the set's checkpoints (scenes named `checkpoint_<name>`) with **Go**, so the later parts of a story can be tried without sitting through the opening.
+```bash
+python server/launch_content_set.py --transport ws --content-set content_sets/zelda1
+```
 
-*   **Arguments (all servers):**
-    *   `--content-set <path>`: which game to serve (required).
-    *   `--save <filename>`: save file to load/save (default: `server_save.json`).
-    *   `--config <path>`: master server config (see
-        [`docs/reference/server-operator-guide.md`](docs/reference/server-operator-guide.md)).
+`launcher.bat` (or `python toolkit/launcher.py`) is a small GUI that picks a set, validates it,
+starts and stops servers and opens the client or editor. Its **Quick play (Test)** starts a
+throwaway server with test tools: skip a scene, or jump to any checkpoint of the story.
 
-## ⚙️ Engine Systems
+## Checking your work
 
-This engine is built on a Component-Entity-System architecture heavily reliant on JSON data definitions.
+```bash
+python check.py            # all four gates (unit, content, editor, client), about two minutes
+python check.py --quick    # only what your diff can affect, plus the content gate
+python run_tests.py --modules tests.singles.test_zelda1
+```
 
-Content sets provide the genre-facing implementations; the engine owns the
-contracts beneath them. A sword, spell, rifle, environmental hazard, or device
-should enter combat through the same attack/effect contract, while authored
-item templates and generated item instances remain distinct. The current
-cross-theme refactor plan and sci-fi proof scope are documented in
-[`docs/design/cross_theme_engine_contracts.md`](docs/design/cross_theme_engine_contracts.md).
+## Making a game
 
-### 1. World & Environment
-*   **Dynamic Region Generation:** Procedural generation of dungeons and areas using 3D geometric algorithms.
-*   **Time System:** Full calendar cycle (Day/Night, Seasons, Years). Time passes in "ticks" or via specific actions.
-*   **Dynamic Weather:** Weather patterns (Rain, Storm, Snow, Clear) flow based on the season and can affect gameplay (e.g., fire damage is weaker in rain).
-*   **Reactive Environment:** Rooms act as game objects. Casting "Ice" on a water room freezes it; "Fire" burns webs.
-*   **Hazard System:** Rooms can contain hazards (Heat, Poison Gas) that deal DoT unless the player has specific resistances.
+A content set is a folder: a manifest, a ruleset, and `data/` JSON for regions, items, creatures,
+dialogue, quests, scenes and triggers. Start with
+[`docs/reference/AUTHORING_A_CONTENT_SET.md`](docs/reference/AUTHORING_A_CONTENT_SET.md); the two
+complete adaptations above are the best worked examples. Changing the engine itself has a checklist
+per kind of change in [`docs/reference/ENGINE_CHANGE_RECIPES.md`](docs/reference/ENGINE_CHANGE_RECIPES.md).
 
-### 2. Entities & AI
-*   **NPC Schedules:** NPCs have daily routines (Sleep, Work, Eat, Socialize) and physically move between rooms based on the time of day.
-*   **Faction & Reputation:** A relationship matrix tracks how factions feel about each other. Player actions (killing friendlies or enemies) dynamically alter reputation, changing NPCs from Neutral to Hostile or Friendly.
-*   **Combat AI:** Enemies can flee when low on health, retreat to mana fonts, assist allies (Social Aggro), or use specific spells based on the situation.
-*   **Minions:** Players can summon minions that follow them, attack aggressors, and persist across regions.
+## Documentation
 
-### 3. Combat & Magic
-*   **Grand Elemental System:** 11+ Damage types (Physical, Fire, Ice, Holy, Shadow, etc.) with a rock-paper-scissors relationship logic (e.g., Water douses Fire).
-*   **Spell Engine:** Support for Single Target, AoE, HoT (Heal over Time), DoT (Damage over Time), Buffs, Debuffs, and Utility (Unlock, Cleanse).
-*   **Status Effects:** Complex tagging system. Effects like "Blind" cap hit chance; "Silence" prevents casting.
-*   **Interactions:** Effects interact (e.g., casting "Cleanse" removes tags `poison` and `curse` but leaves `buffs` intact).
+[`docs/README.md`](docs/README.md) sorts everything by how fast it changes: `plan/` (what is next),
+`reference/` (how it works), `design/` (why), `archive/` (history). [`ROADMAP.md`](ROADMAP.md) holds
+standing decisions; [`CLAUDE.md`](CLAUDE.md) is the working guide for contributors and AI assistants.
 
-### 4. Items & Economy
-*   **Procedural Loot:** Diablo-style item generation with Prefixes (e.g., "Sharp", "Fiery") and Suffixes (e.g., "of the Bear", "of Vampirism") that modify stats and add passive effects.
-*   **Set Bonuses:** Equipping multiple items from the same named set grants cumulative stat bonuses.
-*   **Crafting & Salvaging:** Breakdown items into raw materials (`salvage`) and build new ones using recipes (`craft`) at specific stations (Anvil, Alchemy Table).
-*   **Economy:** Vendors have dynamic inventories, buy/sell multipliers, and persistent stock (items you sell stay on the vendor).
-*   **Durability:** Weapons and armor degrade on use and require repair.
+## Project layout
 
-### 5. Quest System
-*   **Dynamic Generation:** NPCs procedurally generate quests based on their interests and the world state (Kill, Fetch, Deliver).
-*   **Instance Quests:** Accepting specific quests generates a temporary, instanced dungeon region with a portal entrance.
-*   **Quest Board:** A refreshing board of tasks available in major hubs.
-
----
-
-## 🎮 Controls & UI
-
-*   **Keyboard:** Type commands and press `ENTER`.
-    *   `UP/DOWN`: Scroll through command history.
-    *   `TAB`: Auto-complete commands.
-    *   `PAGE UP/DOWN`: Scroll the text log.
-*   **Mouse:**
-    *   **Clickable Text:** Click highlighted text (Items, NPCs, Exits) to interact immediately.
-    *   **Panels:** Drag and drop UI panels to customize your layout.
-    *   **Context Menu:** Right-click objects for a list of actions (Look, Take, Attack).
+```text
+server/engine/       the engine (commands, world, npcs, magic, items, player, server/ transports)
+server/tests/        unit and journey tests
+content_sets/        the games (data only)
+mud-world-editor/    Godot world editor
+client/              Godot game client
+toolkit/             validators, launcher, scripted playthroughs, authoring tools
+docs/                plan, reference, design, archive
+```
 
 ---
 
@@ -204,137 +162,12 @@ cross-theme refactor plan and sci-fi proof scope are documented in
 
 ---
 
-## 🕹️ Gameplay Example
-
-**1. The Setup**
-You start in the Town Square. You check your status and gear up.
-```text
-> status
-Name: Adventurer | Background: Wanderer | Level: 1
-Health: 100/100 | Mana: 50/50
-Stats: STR 12, DEX 10, INT 8
-Equipped: (nothing)
-
-> i
-You are carrying:
-- Rusty Dagger
-- Foraging Knife
-```
-
-**2. Getting a Quest**
-You see a board and an Elder.
-```text
-> look board
-Available Quests:
-1. Bounty: Giant Rats (Kill 5) - Reward: 50g
-2. Investigation: The Old Cellar (Instance) - Reward: Rare Item
-
-> accept quest 2
-You accept the quest. A shimmering portal appears to the North!
-Elder Thorne approaches you. "The cellar has been overrun. Please clear it out."
-```
-
-**3. The Dungeon**
-You enter the procedural instance.
-```text
-> north
-You enter The Old Cellar.
-It is very dark here. The air smells of rot.
-
-> cast light
-You cast Light! The room brightens.
-You see: 2x Giant Rat, 1x Rusty Chest (Locked).
-
-> attack rat
-You attack the Giant Rat with your Worn Sword for 8 physical damage.
-The Giant Rat bites you for 3 physical damage.
-```
-
-**4. Loot and Mechanics**
-After the fight, you find loot.
-```text
-> take all
-You pick up a Rat Tail, 2 Gold.
-
-> pick chest
-You successfully pick the lock! (Skill: Lockpicking increased to 2)
-You open the chest. Inside you see:
-- Sharp Iron Dagger of Fire
-
-> look dagger
-Sharp Iron Dagger of Fire
-Damage: 12 (+2 Fire)
-Value: 150g
-```
-
-**5. Crafting & Economy**
-You return to town to sell junk and salvage gear.
-```text
-> salvage worn sword
-You break down the Worn Sword into: 1x Iron Scrap.
-
-> trade merchant
-> sell rat tail
-You sell Rat Tail for 2 gold.
-
-> craft
-Nearby: Anvil
-Recipes:
-- Iron Dagger (Requires: 2x Iron Scrap, 1x Leather Scrap)
-- Iron Sword (Requires: 3x Iron Scrap, 1x Leather Scrap)
-
-> craft craft_iron_sword
-You hammer the metal violently... (Rolled 45 vs DC 20)
-Successfully crafted 1 x Iron Sword! Your Crafting skill increased to 2!
-
-> equip iron sword
-(You unequip the Worn Sword)
-You equip the Iron Sword in your Main Hand.
-```
-
----
-
-## 📂 Project Structure
-
-The engine is designed to be data-driven. Logic resides in `server/engine/`,
-while playable content resides in `content_sets/<set>/data/`.
-
-```text
-├── server/
-│   ├── main.py             # Entry point
-│   ├── engine/
-│   │   ├── config/         # Configuration constants (combat, display, etc.)
-│   │   ├── core/           # Main game loop, input handling, time, weather
-│   │   ├── commands/       # Command parsing and logic handlers
-│   │   ├── items/          # Item classes, Inventory, Loot Generation
-│   │   ├── magic/          # Spells, Effects, and Registry
-│   │   ├── npcs/           # NPC logic, AI, and pathfinding
-│   │   ├── player/         # Player class and persistence logic
-│   │   ├── ui/             # Pygame rendering, panels, and menus
-│   │   ├── utils/          # Pathfinding (A*), text formatting
-│   │   └── world/          # Room, Region, and Spawner logic
-│   └── tests/              # Unit and integration tests
-├── content_sets/
-│   └── fantasy_frontier/data/
-│       ├── combat/         # Elemental relationships and flavor text
-│       ├── crafting/       # Recipe definitions (*.json)
-│       ├── dialogue/       # NPC conversation graphs
-│       ├── items/          # Item templates (*.json) & Sets
-│       ├── magic/          # Spell definitions (*.json)
-│       ├── npcs/           # NPC templates (*.json)
-│       ├── player/         # Background definitions and starter kits
-│       ├── quests/         # Instance quest templates
-│       └── regions/        # Region definitions and dynamic themes
-```
-
----
-
 ## 🛠️ Modding & Adding Content
 
 Because the engine uses JSON for almost all content, you can add new items, monsters, and spells without writing Python code.
 
 ### 1. Adding a New Item
-Create a file in `content_sets/fantasy_frontier/data/items/my_items.json`:
+Create a file in `content_sets/<your_set>/data/items/my_items.json`:
 ```json
 {
   "item_fire_brand": {
@@ -356,7 +189,7 @@ Create a file in `content_sets/fantasy_frontier/data/items/my_items.json`:
 ```
 
 ### 2. Adding a New Spell
-Create a file in `content_sets/fantasy_frontier/data/magic/my_spells.json`:
+Create a file in `content_sets/<your_set>/data/magic/my_spells.json`:
 ```json
 {
   "meteor_swarm": {
@@ -375,7 +208,7 @@ Create a file in `content_sets/fantasy_frontier/data/magic/my_spells.json`:
 ```
 
 ### 3. Creating a New Region
-Create `content_sets/fantasy_frontier/data/regions/my_dungeon.json`:
+Create `content_sets/<your_set>/data/regions/my_dungeon.json`:
 ```json
 {
   "name": "The Dark Hold",
@@ -402,189 +235,12 @@ Create `content_sets/fantasy_frontier/data/regions/my_dungeon.json`:
 
 ---
 
-## 🧪 Testing
 
-The engine includes a comprehensive suite of unit and batch tests.
+## Contributing
 
-```bash
-# Run all tests
-python -m unittest discover tests
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). A change is done when
+`python check.py` passes.
 
-# Run specific batch tests (e.g., Loot System)
-python -m unittest tests.batch.test_batch_loot
-```
+## License
 
----
-
-## 📄 License
-
-This project is provided as-is for educational and development purposes.
-
----
-
-## 🗺️ Godot + True MUD Commercialization Roadmap
-
-> **For current priorities, read [`ROADMAP.md`](ROADMAP.md)** (rewritten
-> 2026-09-14 after a full engine + content audit; tracks phases P0-P8) and
-> [`docs/design/WORLD_DESIGN.md`](docs/design/WORLD_DESIGN.md). Much of what
-> this section describes as future phases is already done — a headless,
-> server-authoritative core with TCP/WS transports exists
-> (`engine/server/`), and the content-set pipeline/editor integration Phase 4
-> calls for is largely built (`engine/server/content_set/`,
-> `content_sets/fantasy_frontier/`, the synced `mud-world-editor/`). Kept
-> below as the original commercialization framing and for the docs it
-> still points at usefully (platform architecture, Steam packaging, theme
-> packs); treat phase numbering and "current state" as historical, not a
-> live plan.
-
-Goal: evolve this singleplayer simulation-first game into a commercial, server-authoritative multiplayer MUD with Godot client UX.
-
-Execution docs live in `docs/roadmap/` (see the supersession notice in
-`docs/archive/roadmap-README-superseded.md` before treating anything there as current):
-- `docs/archive/roadmap-README-superseded.md`
-- `docs/roadmap/phases/`
-- `docs/roadmap/adr/`
-- `docs/reference/platform-architecture.md`
-- `docs/archive/steam-packaging-track.md`
-- `docs/reference/theme-pack-spec-v1.md`
-
-Current content-engine development flow:
-
-- Validate Fantasy Frontier: `python toolkit/content_set_validator.py content_sets/fantasy_frontier`
-- Launch Fantasy Frontier directly (the default content set):
-  - `python server/launch_content_set.py --transport tcp`
-  - `python server/launch_content_set.py --transport ws`
-
-Legacy server-fixture operator flow:
-- Refresh fixture: `python toolkit/fixture_refresh.py --source content_sets/fantasy_frontier/data --latest-root content_sets/fantasy_frontier/data --fixture-root tmp/content_fixtures --fixture-name fantasy_editor_migrated_latest`
-- Launch from latest selected fixture (auto-reads `tmp/content_fixtures/LATEST_REFRESH.json`):
-  - `python server/launch_from_latest_fixture.py --transport tcp`
-  - `python server/launch_from_latest_fixture.py --transport ws`
-- Operator reference: `docs/reference/server-operator-guide.md`
-
-### Guiding Product/Tech Decisions
-* Keep simulation logic authoritative on the server.
-* Treat the Godot client as a view/controller layer over networked game state.
-* Preserve data-driven content pipelines (`content_sets/<set>/data/*.json`) as long as possible to reduce rewrite risk.
-* Use existing tests as migration safety rails before replacing systems.
-
-### Current State (What Helps Us)
-* Strong domain coverage in tests (`tests/` includes combat, world, AI, economy, quests, persistence).
-* Clean command dispatch layer (`engine/commands/command_system.py`) that can become protocol-facing handlers.
-* Central world lifecycle (`engine/world/world.py`) and persistence (`engine/world/save_manager.py`) already exist.
-* Data definitions are externalized in JSON, which is migration-friendly.
-
-### Phase 0: Product and Architecture Baseline (2-4 weeks)
-Deliverables:
-* Define commercial target: buy-to-play vs F2P, session model, expected CCU, and platform targets.
-* Define networking authority model and anti-cheat stance.
-* Write a canonical architecture decision record (ADR) for:
-  * Server runtime choice (`Python headless` first, or full GDScript/C# port later).
-  * Protocol format (JSON over WebSocket first, versioned messages).
-  * Account/auth boundary (guest/local dev now, real auth later).
-* Establish KPIs: tick time budget, command latency, reconnect success, crash-free session rate.
-
-Exit gate:
-* Signed-off architecture + business constraints + scope for first paid launch.
-
-### Phase 1: Extract Headless Authoritative Server Core (4-8 weeks)
-Deliverables:
-* Separate simulation engine from Pygame-specific rendering/input concerns.
-* Introduce server loop that owns:
-  * world updates
-  * command processing
-  * save/load
-  * AI ticks
-* Introduce a network session model:
-  * `player_id`, connection state, command queue, outbound event stream.
-* Add protocol boundary adapters around command input/output.
-* Keep existing content files and mechanics unchanged where possible.
-
-Recommended first implementation:
-* Keep server in Python to minimize rewrite risk.
-* Build thin Godot client that connects and renders text/UI events.
-
-Exit gate:
-* Multiple remote clients can connect, issue commands, and observe shared world state.
-
-### Phase 2: Godot Client Foundation (4-6 weeks)
-Deliverables:
-* Godot project with:
-  * login/character select flow
-  * command input + history/autocomplete
-  * text/event feed
-  * panelized UI (inventory, map, quests, status)
-* Network client with reconnect and session resume handling.
-* Message schema versioning support in client.
-* Minimal accessibility baseline (font scaling, color contrast presets, keybind config).
-
-Exit gate:
-* Playable vertical slice in Godot client with parity for core text loop (move/look/combat/inventory/save).
-
-### Phase 3: Multiplayer Semantics and Live Ops Core (6-10 weeks)
-Deliverables:
-* Shared-world rules:
-  * room occupancy
-  * visibility/broadcast scoping
-  * interaction contention rules
-* Persistence model upgrades:
-  * account-level data
-  * character slots
-  * migration/version handling for saves
-* Operational services:
-  * structured logs
-  * metrics
-  * admin commands
-  * crash recovery and backup restore drills
-* Abuse/security baseline:
-  * input validation
-  * rate limits
-  * moderation hooks
-
-Exit gate:
-* Closed alpha with stable multi-user sessions and durable progression.
-
-### Phase 4: Content Pipeline and Tooling for Scale (ongoing)
-Deliverables:
-* Content schema validation and CI checks for each content set's `data/` tree.
-* World/content editor integration path (`mud-world-editor`) with export contracts.
-* Regression harness for command transcripts and deterministic combat/world snapshots.
-* Authoring docs for designers (items/spells/regions/quests conventions).
-
-Exit gate:
-* New content can be added by non-engineers with low defect rates.
-
-### Phase 5: Commercial Readiness (8-12 weeks)
-Deliverables:
-* Platform and legal readiness:
-  * Terms/Privacy
-  * account deletion/export policy
-  * telemetry disclosures
-* Commerce stack:
-  * entitlement checks
-  * billing integration
-  * fraud and chargeback handling policy
-* Launch operations:
-  * patching and rollback strategy
-  * support workflows
-  * incident runbooks and on-call rotation
-* QA:
-  * load testing
-  * soak testing
-  * compatibility matrix
-
-Exit gate:
-* Release candidate passes technical, operational, and legal go-live checklist.
-
-### Migration Risks to Manage Early
-* Tight coupling between loop/UI/simulation in current `GameManager`.
-* Tick-rate and deterministic behavior drift once network latency is introduced.
-* Save format evolution (`save_format_version`) under live-service constraints.
-* Tooling debt for validating JSON content at scale.
-
-### Suggested First Milestone in This Repo
-1. Create `/docs/roadmap/` with ADRs and milestone checklists.
-2. Add a `server_mode` entry point that runs headless without Pygame rendering.
-3. Add a simple socket/WebSocket adapter that forwards commands into `CommandProcessor`.
-4. Add an integration test: two simulated clients, one shared world, verified state/events.
-```
+No license has been chosen yet, so all rights are reserved by the authors until one is added.
