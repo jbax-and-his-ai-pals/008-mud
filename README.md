@@ -8,20 +8,17 @@
 A data-driven text-RPG (MUD) engine in Python, with a Godot client and a Godot world editor.
 **All functionality lives in the engine; a game is content only**: JSON files in a *content set*
 that the engine validates, serves and the editor can author. The same engine runs a fantasy
-frontier, a sci-fi salvage yard, a modern night shift, and faithful-in-shape adaptations of three
-classic console RPGs, which exist to find and harden the engine's gaps.
+frontier, a sci-fi salvage yard, a modern night shift, and several story-driven games.
 
 ## Games that ship in the tree
 
 | Content set | What it is |
 |---|---|
-| [`dq1_slice`](content_sets/dq1_slice) | *The Dawnglass*: a complete, finishable adaptation of the original Dragon Quest. Level table, dark caves, encounter zones, a rainbow bridge, a two-form final boss. [Walkthrough](docs/reference/DQ1_SLICE_WALKTHROUGH.md) |
-| [`zelda1`](content_sets/zelda1) | *The Starcrown of Ardenmoor*: a complete adaptation of the first Legend of Zelda quest. Hearts and half-hearts, bombs that open walls, candles, eight dungeons, a boss who must be searched out. [Walkthrough](docs/reference/ZELDA1_WALKTHROUGH.md) |
-| [`ff4_slice`](content_sets/ff4_slice) | A party-based slice of Final Fantasy IV: companions, scenes, cutscenes, a Paladin conversion. [Walkthrough](docs/reference/FF4_SLICE_WALKTHROUGH.md) |
+| [`dq1_slice`](content_sets/dq1_slice) | *The Dawnglass*: a complete, finishable story game. A level table, dark caves, encounter zones, a magic bridge and a two-form final boss. [Walkthrough](docs/reference/DQ1_SLICE_WALKTHROUGH.md) |
+| [`zelda1`](content_sets/zelda1) | *The Starcrown of Ardenmoor*: a complete, finishable adventure. Hearts and half-hearts, bombs that open walls, candles, eight dungeons and a boss who must be searched out. [Walkthrough](docs/reference/ZELDA1_WALKTHROUGH.md) |
+| [`ff4_slice`](content_sets/ff4_slice) | A party-based story slice: companions, scenes, cutscenes and a class change. [Walkthrough](docs/reference/FF4_SLICE_WALKTHROUGH.md) |
 | [`fantasy_frontier`](content_sets/fantasy_frontier) | The large, open sandbox set: crafting, procedural loot, schedules, factions, weather, dynamic quests. |
 | [`orbital_salvage`](content_sets/orbital_salvage), [`night_shift`](content_sets/night_shift), [`modern_capsule`](content_sets/modern_capsule) | Sci-fi, modern and capsule proofs that the engine carries no fantasy assumptions. |
-
-Every name in the adaptations is changed; they are engine tests, not releases.
 
 ## What is in the box
 
@@ -78,7 +75,7 @@ python run_tests.py --modules tests.singles.test_zelda1
 A content set is a folder: a manifest, a ruleset, and `data/` JSON for regions, items, creatures,
 dialogue, quests, scenes and triggers. Start with
 [`docs/reference/AUTHORING_A_CONTENT_SET.md`](docs/reference/AUTHORING_A_CONTENT_SET.md); the two
-complete adaptations above are the best worked examples. Changing the engine itself has a checklist
+complete story games above are the best worked examples. Changing the engine itself has a checklist
 per kind of change in [`docs/reference/ENGINE_CHANGE_RECIPES.md`](docs/reference/ENGINE_CHANGE_RECIPES.md).
 
 ## Documentation
@@ -240,7 +237,3 @@ Create `content_sets/<your_set>/data/regions/my_dungeon.json`:
 
 Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md). A change is done when
 `python check.py` passes.
-
-## License
-
-No license has been chosen yet, so all rights are reserved by the authors until one is added.
