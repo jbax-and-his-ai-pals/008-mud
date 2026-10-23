@@ -24,7 +24,6 @@ and the editor can author it, with the docs and `docs/plan/editor-coverage-ledge
 
 * Stage by explicit path; never `git add -A`.
 * Engine tests use `tests.fixtures.STORY_FIXTURE`, never a shipped story. Only tests about a shipped set name it.
-* A story uses its own names, not the names of the game it adapts.
 * Never edit `content_sets/fantasy_frontier_test/**`; a validator error that set trips becomes a warning.
 * Line endings are LF. Content JSON has no trailing newline (the editor's form): run
   `python toolkit/format_content.py --apply` after hand-writing content.

@@ -26,7 +26,7 @@ frontier, a sci-fi salvage yard, a modern night shift, and several story-driven 
 * **Content sets** (`content_sets/`): data only. A validator (`toolkit/content_set_validator.py`) refuses bad values before a game boots.
 * **World editor** (`mud-world-editor/`): a Godot app that authors every content kind, writes the same JSON byte for byte, and is checked against the engine's own vocabulary.
 * **Godot client** (`client/`): panels, clickable text, a test mode with checkpoints.
-* **Toolkit** (`toolkit/`): launcher GUI, scripted playthroughs (`play_script.py`, `adaptation_walkthroughs/`), authoring helpers.
+* **Toolkit** (`toolkit/`): launcher GUI, scripted playthroughs (`play_script.py`), authoring helpers.
 
 ## Quick start
 
