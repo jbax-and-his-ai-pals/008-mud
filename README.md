@@ -8,7 +8,7 @@
 A data-driven text-RPG (MUD) engine in Python, with a Godot client and a Godot world editor.
 **All functionality lives in the engine; a game is content only**: JSON files in a *content set*
 that the engine validates, serves and the editor can author. The same engine runs a fantasy
-frontier, a sci-fi salvage yard, a modern night shift, and several story-driven games.
+frontier, a sci-fi salvage yard, a modern night shift, and adaptations of classic console RPGs.
 
 ## Games that ship in the tree
 
